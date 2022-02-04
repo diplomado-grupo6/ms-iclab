@@ -1,48 +1,113 @@
 def call(){
+
+        if(isIcOrRelease()=='CI'){
         figlet 'CI'
-        stage('buidAndTest') {
+        stage('compile-unitTest-jar') {
             STAGE=env.STAGE_NAME
+            figlet 'compile'
+            figlet 'unitTest'
+            figlet 'jar'
+
             sh 'chmod a+x gradlew'
             sh './gradlew build'
         }
+        
         stage('sonar') {
             STAGE=env.STAGE_NAME
+            figlet STAGE
             scannerHome = tool 'sonar-scanner'
             withSonarQubeEnv('sonarqube-server') {
                 sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=ejemplo-maven -Dsonar.java.binaries=build"
             }
         }
-        stage('runJar') {
+        
+        stage('nexusUpload') {
             STAGE=env.STAGE_NAME
+            figlet STAGE
+            nexusPublisher nexusInstanceId: 'nexus_test', nexusRepositoryId: 'test-nexus', packages: [[$class: 'MavenPackage', mavenAssetList: [[classifier: '', extension: '', filePath: 'build/libs/DevOpsUsach2020-0.0.1.jar']], mavenCoordinate: [artifactId: 'ejemplo-maven-feature-sonar', groupId: 'com.devopsusach2020', packaging: 'jar', version: '0.0.1']]]
+        }
+        if(getBranchType()=='develop'){
+            stage('gitCreateRelease') {
+                //solo rama dev
+                STAGE=env.STAGE_NAME
+                figlet STAGE
+            }
+        }
+    }
+    else{
+
+        //CD
+        figlet 'CD'
+        stage('gitDiff') {
+            
+            STAGE=env.STAGE_NAME
+            figlet STAGE
+        }
+        
+        stage('nexusDownload') {
+            STAGE=env.STAGE_NAME
+            figlet STAGE
+            sh 'curl -X GET -u admin:L1m1t2rm., http://localhost:8082/repository/test-nexus/com/devopsusach2020/DevOpsUsach2020/0.0.1/DevOpsUsach2020-0.0.1.jar -O'
+        }
+        
+        stage('run') {
+            STAGE=env.STAGE_NAME
+            figlet STAGE
             sh 'nohup bash gradlew bootRun &'
             sleep(20)
         }
         stage('test') {
             STAGE=env.STAGE_NAME
+            figlet STAGE
             sh """curl -X GET 'http://localhost:8081/rest/mscovid/test?msg=testing'"""
         }
-        stage('nexusCI') {
+        stage('gitMergeMaster') {
             STAGE=env.STAGE_NAME
-            nexusPublisher nexusInstanceId: 'nexus_test', nexusRepositoryId: 'test-nexus', packages: [[$class: 'MavenPackage', mavenAssetList: [[classifier: '', extension: '', filePath: 'build/libs/DevOpsUsach2020-0.0.1.jar']], mavenCoordinate: [artifactId: 'ejemplo-maven-feature-sonar', groupId: 'com.devopsusach2020', packaging: 'jar', version: '0.0.1']]]
+            figlet STAGE
+            
         }
-        figlet 'CD'
-        stage('downloadNexus') {
+        stage('gitMergeDevelop') {
             STAGE=env.STAGE_NAME
-            sh 'curl -X GET -u admin:L1m1t2rm., http://localhost:8082/repository/test-nexus/com/devopsusach2020/DevOpsUsach2020/0.0.1/DevOpsUsach2020-0.0.1.jar -O'
+            figlet STAGE
+            
         }
-        stage('runDownloadedJar') {
+        stage('gitTagMaster') {
             STAGE=env.STAGE_NAME
-            sh 'nohup java -jar DevOpsUsach2020-0.0.1.jar &'
-            sleep(20)
+            figlet STAGE
+            
         }
-        stage('test') {
-            STAGE=env.STAGE_NAME
-            sh """curl -X GET 'http://localhost:8081/rest/mscovid/test?msg=testing'"""
-        }
-        stage('nexusCD') {
-            STAGE=env.STAGE_NAME
-            nexusPublisher nexusInstanceId: 'nexus_test', nexusRepositoryId: 'test-nexus', packages: [[$class: 'MavenPackage', mavenAssetList: [[classifier: '', extension: '', filePath: 'DevOpsUsach2020-0.0.1.jar']], mavenCoordinate: [artifactId: 'DevOpsUsach2020', groupId: 'com.devopsusach2020', packaging: 'jar', version: '1.0.0']]]
-        }
+    }
+     
+}
+
+def getBranchType(){
+    String gitBranch=env.GIT_BRANCH
+    if(gitBranch.contains('feature-') ){
+        return 'feature'
+    }
+    else if(gitBranch.contains('develop') ){
+        return 'develop'
+    }
+    else if(gitBranch.contains('release-') ){
+        return 'release'
+    }
+    error "Undefined branch name"
+
+}
+def isIcOrRelease(){
+    String branchType=getBranchType()
+    if( branchType=='feature' ||  
+        branchType=='develop'){
+            return 'CI'
+    }
+    else if(branchType=='release'){
+        return 'Release'
+    }
+        
+    error "Undefined branch type ${branchType}"
+    
+
 }
 
 return this;
+
