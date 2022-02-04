@@ -8,14 +8,14 @@ def call(){
         stage('sonar') {
             STAGE=env.STAGE_NAME
             scannerHome = tool 'sonar-scanner'
-            withSonarQubeEnv('Sonarqube-server') {
-                sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=ejemplo-gradle2 -Dsonar.java.binaries=build"
+            withSonarQubeEnv('sonarqube-server') {
+                sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=ejemplo-maven -Dsonar.java.binaries=build"
             }
         }
         stage('runJar') {
             STAGE=env.STAGE_NAME
             sh 'nohup bash gradlew bootRun &'
-            sleep(30)
+            sleep(20)
         }
         stage('test') {
             STAGE=env.STAGE_NAME
@@ -23,17 +23,17 @@ def call(){
         }
         stage('nexusCI') {
             STAGE=env.STAGE_NAME
-            nexusPublisher nexusInstanceId: 'nexus3', nexusRepositoryId: 'test-gradle', packages: [[$class: 'MavenPackage', mavenAssetList: [[classifier: '', extension: '', filePath: 'build/libs/DevOpsUsach2020-0.0.1.jar']], mavenCoordinate: [artifactId: 'ejemplo-maven-feature-sonar', groupId: 'com.devopsusach2020', packaging: 'jar', version: '0.0.1']]]
+            nexusPublisher nexusInstanceId: 'nexus_test', nexusRepositoryId: 'test-nexus', packages: [[$class: 'MavenPackage', mavenAssetList: [[classifier: '', extension: '', filePath: 'build/libs/DevOpsUsach2020-0.0.1.jar']], mavenCoordinate: [artifactId: 'ejemplo-maven-feature-sonar', groupId: 'com.devopsusach2020', packaging: 'jar', version: '0.0.1']]]
         }
         figlet 'CD'
         stage('downloadNexus') {
             STAGE=env.STAGE_NAME
-            sh 'curl -X GET -u admin:123456 http://localhost:8082/repository/test-nexus/com/devopsusach2020/DevOpsUsach2020/0.0.1/DevOpsUsach2020-0.0.1.jar -O'
+            sh 'curl -X GET -u admin:L1m1t2rm., http://localhost:8082/repository/test-nexus/com/devopsusach2020/DevOpsUsach2020/0.0.1/DevOpsUsach2020-0.0.1.jar -O'
         }
         stage('runDownloadedJar') {
             STAGE=env.STAGE_NAME
             sh 'nohup java -jar DevOpsUsach2020-0.0.1.jar &'
-            sleep(30)
+            sleep(20)
         }
         stage('test') {
             STAGE=env.STAGE_NAME
@@ -41,7 +41,7 @@ def call(){
         }
         stage('nexusCD') {
             STAGE=env.STAGE_NAME
-            nexusPublisher nexusInstanceId: 'nexus3', nexusRepositoryId: 'test-repo', packages: [[$class: 'MavenPackage', mavenAssetList: [[classifier: '', extension: '', filePath: 'DevOpsUsach2020-0.0.1.jar']], mavenCoordinate: [artifactId: 'DevOpsUsach2020', groupId: 'com.devopsusach2020', packaging: 'jar', version: '1.0.0']]]
+            nexusPublisher nexusInstanceId: 'nexus_test', nexusRepositoryId: 'test-nexus', packages: [[$class: 'MavenPackage', mavenAssetList: [[classifier: '', extension: '', filePath: 'DevOpsUsach2020-0.0.1.jar']], mavenCoordinate: [artifactId: 'DevOpsUsach2020', groupId: 'com.devopsusach2020', packaging: 'jar', version: '1.0.0']]]
         }
 }
 
