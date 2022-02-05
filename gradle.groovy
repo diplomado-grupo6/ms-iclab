@@ -37,7 +37,7 @@ def call(){
             }
         }
     }
-    else{
+    else if(getBranchType()=='release'){
 
         //CD
         figlet 'CD'
@@ -45,6 +45,8 @@ def call(){
             
             STAGE=env.STAGE_NAME
             figlet STAGE
+            // opcional getDiff(env.GIT_BRANCH,'main')
+
         }
         
         stage('nexusDownload') {
@@ -67,6 +69,7 @@ def call(){
         stage('gitMergeMaster') {
             STAGE=env.STAGE_NAME
             figlet STAGE
+            //merge(env.GIT_BRANCH,'main')
             
         }
         stage('gitMergeDevelop') {
@@ -118,8 +121,27 @@ def createBranch(String ramaOrigen,String ramaNueva){
 		git push origin ${ramaNueva}
 		
 	"""
+}
+def getDiff(String ramaOrigen,String ramaDestino){
+    println ramaOrigen
+    
+    checkout(ramaOrigen)
 
-
+    println ramaDestino
+    
+        
+    sh """
+        pwd
+        git checkout ${ramaOrigen}
+        git pull origin ${ramaDestino}
+        git checkout ${ramaDestino}
+        git pull origin ${ramaOrigen}
+        git checkout ${ramaOrigen}
+        git branch
+		git diff ${ramaOrigen}...${ramaDestino}
+		git status
+		
+	"""
 }
 
 def merge(String ramaOrigen, String ramaDestino){
