@@ -4,6 +4,7 @@ pipeline {
 
         environment {
             STAGE = ''
+            PIPELINE=''
         }
 
         parameters {
@@ -28,12 +29,11 @@ pipeline {
 
         post {
           success {
-            slackSend color: 'good', message: "[${env.USER}][${env.JOB_NAME}][${params.buildTool}] Ejecución exitosa."
+            slackSend color: 'good', message: "[Grupo6][${PIPELINE}][Rama: ${GIT_BRANCH}][Stage: ${STAGE}][Resultado: Ok]"
           }
-
           failure {
-            slackSend color: 'danger', message: "[${env.USER}][${env.JOB_NAME}][${params.buildTool}] Ejecución fallida en stage $STAGE"
-            error "Ejecución fallida en stage {$STAGE}"
+            slackSend color: 'danger', message: "[Grupo6][${PIPELINE}][Rama: ${GIT_BRANCH}][Stage: ${STAGE}][Resultado: No Ok]"
+            error "Ejecución fallida en stage ${STAGE}"
           }
         }
 }
