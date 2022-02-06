@@ -7,21 +7,21 @@ def call(){
             STAGE=env.STAGE_NAME
             figlet 'compile'
             sh 'chmod a+x mvnw'
-            sh './mvnw build'
+            sh './mvnw clean compile -e'
         }
         
         stage('unitTest') {
             STAGE=env.STAGE_NAME
             figlet 'unitTest'
             sh 'chmod a+x mvnw'
-            sh './mvnw test'
+            sh './mvnw clean test -e'
         }
         
         stage('jar') {
             STAGE=env.STAGE_NAME
             figlet 'jar'
             sh 'chmod a+x mvnw'
-            sh './mvnw package'
+            sh './mvnw clean package -e'
         }
         
         stage('sonar') {
@@ -74,7 +74,7 @@ def call(){
             sh 'ls'
             STAGE=env.STAGE_NAME
             figlet STAGE
-            sh 'nohup bash mvnw run &'
+            sh 'nohup bash mvnw spring-boot:run &'
             sh 'ps -fea|grep mvnw'
             sleep(20)
         }
