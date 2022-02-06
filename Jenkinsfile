@@ -31,7 +31,6 @@ pipeline {
           success {
             slackSend color: 'good', message: "[Grupo6][${PIPELINE}][Rama: ${GIT_BRANCH}][Stage: ${STAGE}][Resultado: Ok]"
           }
-
           failure {
             slackSend color: 'danger', message: "[Grupo6][${PIPELINE}][Rama: ${GIT_BRANCH}][Stage: ${STAGE}][Resultado: No Ok]"
             error "Ejecución fallida en stage ${STAGE}"
