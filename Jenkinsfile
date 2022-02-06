@@ -20,7 +20,8 @@ pipeline {
                       def ejecucion = load 'gradle.groovy'
                       ejecucion.call()
                   } else {
-                      maven()
+                    def maven = load 'maven.groovy'  
+                    maven.call()
                   }
               }
             }
